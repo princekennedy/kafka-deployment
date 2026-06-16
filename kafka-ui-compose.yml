@@ -1,16 +1,24 @@
 services:
-  akhq:
-    image: tchiotludo/akhq:latest
-    container_name: akhq
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
     restart: unless-stopped
 
     ports:
       - "8080:8080"
 
     environment:
-      AKHQ_CONFIGURATION: |
-        akhq:
-          connections:
-            kafka:
-              properties:
-                bootstrap.servers: "${SERVER_PUBLIC_IP}:9092"
+      KAFKA_CLUSTERS_0_NAME: production
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${SERVER_PUBLIC_IP}:9092
+
+      # SASL CONFIG
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: PLAIN
+
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: >
+        org.apache.kafka.common.security.plain.PlainLoginModule required
+        username="admin"
+        password="admin123";
+
+    depends_on:
+      - kafka
