@@ -1,6 +1,6 @@
 services:
   kafka:
-    image: bitnami/kafka:3.7
+    image: apache/kafka:3.8.0
     container_name: kafka
     restart: unless-stopped
 
@@ -8,49 +8,34 @@ services:
       - "9092:9092"
 
     environment:
-      # =====================
-      # KRaft mode
-      # =====================
-      KAFKA_CFG_NODE_ID: 1
-      KAFKA_CFG_PROCESS_ROLES: broker,controller
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # ======================
+      # KRaft REQUIRED
+      # ======================
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
 
-      # =====================
+      # ======================
       # Listeners
-      # =====================
-      KAFKA_CFG_LISTENERS: SASL_PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_CFG_ADVERTISED_LISTENERS: SASL_PLAINTEXT://${SERVER_PUBLIC_IP}:9092
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT
-      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: SASL_PLAINTEXT
+      # ======================
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${SERVER_PUBLIC_IP}:9092
 
-      # =====================
-      # SASL
-      # =====================
-      KAFKA_CFG_SASL_ENABLED_MECHANISMS: PLAIN
-      KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
 
-      # =====================
-      # USERS
-      # =====================
-      KAFKA_CLIENT_USERS: ${KAFKA_USERNAME:-kafka}
-      KAFKA_CLIENT_PASSWORDS: ${KAFKA_PASSWORD:-kafka123}
+      # ======================
+      # Cluster
+      # ======================
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
 
-      KAFKA_INTER_BROKER_USER: ${KAFKA_INTER_BROKER_USER:-kafka}
-      KAFKA_INTER_BROKER_PASSWORD: ${KAFKA_INTER_BROKER_PASSWORD:-kafka123}
-
-      # =====================
-      # Cluster settings
-      # =====================
-      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR: 1
-
-      KAFKA_KRAFT_CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
 
     volumes:
-      - kafka_data:/bitnami/kafka
+      - kafka_data:/tmp/kafka-logs
 
 volumes:
   kafka_data:
