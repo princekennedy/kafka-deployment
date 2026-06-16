@@ -1,18 +1,16 @@
 services:
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
+  akhq:
+    image: tchiotludo/akhq:latest
+    container_name: akhq
     restart: unless-stopped
 
     ports:
       - "8080:8080"
 
     environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${SERVER_PUBLIC_IP}:9092
-
-      # If using SASL later
-      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: PLAINTEXT
-
-    depends_on:
-      - kafka
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            kafka:
+              properties:
+                bootstrap.servers: "${SERVER_PUBLIC_IP}:9092"
