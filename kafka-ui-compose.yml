@@ -1,35 +1,34 @@
 services:
-  kafka:
-    image: apache/kafka:4.1.2
-    container_name: kafka
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
     restart: unless-stopped
 
     ports:
-      - "9092:9092"
+      - "8080:8080"
 
     environment:
-      # KRaft
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # =========================
+      # UI LOGIN (THIS IS WHAT YOU WANT)
+      # =========================
+      AUTH_TYPE: "LOGIN_FORM"
 
-      # Listeners
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${SERVER_PUBLIC_IP}:9092
+      SPRING_SECURITY_USER_NAME: ${KAFKA_UI_USER:-admin}
+      SPRING_SECURITY_USER_PASSWORD: ${KAFKA_UI_PASSWORD:-admin123}
 
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # =========================
+      # Kafka connection
+      # =========================
+      KAFKA_CLUSTERS_0_NAME: production
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${SERVER_PUBLIC_IP}:9092
 
-      # Stability
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      # If Kafka is PLAINTEXT (current safe setup)
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: PLAINTEXT
 
-      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
-
-    volumes:
-      - kafka_data:/var/lib/kafka/data
-
-volumes:
-  kafka_data:
+      # If later you enable SASL, switch to this:
+      # KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      # KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: PLAIN
+      # KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: >
+      #   org.apache.kafka.common.security.plain.PlainLoginModule required
+      #   username="admin"
+      #   password="admin123";
