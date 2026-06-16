@@ -8,60 +8,25 @@ services:
       - "9092:9092"
 
     environment:
-      # =========================
-      # KRaft mode
-      # =========================
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
 
-      # =========================
-      # Listeners
-      # =========================
-      KAFKA_LISTENERS: SASL_PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://${SERVER_PUBLIC_IP}:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${SERVER_PUBLIC_IP}:9092
 
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SASL_PLAINTEXT:SASL_PLAINTEXT,CONTROLLER:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: SASL_PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
 
-      # =========================
-      # SASL
-      # =========================
-      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
-      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-
-      # =========================
-      # JAAS CONFIG (FROM YOUR ENV VARS)
-      # =========================
-      KAFKA_JAAS_CONFIG: |
-        KafkaServer {
-          org.apache.kafka.common.security.plain.PlainLoginModule required
-          username="${KAFKA_INTER_USER}"
-          password="${KAFKA_INTER_PASSWORD}"
-          user_${KAFKA_USERNAME}="${KAFKA_PASSWORD}"
-          user_admin="${KAFKA_INTER_PASSWORD}";
-        };
-
-      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
-
-      # =========================
-      # Cluster stability
-      # =========================
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
 
     volumes:
       - kafka_data:/var/lib/kafka/data
-
-    entrypoint: ["/bin/bash", "-c"]
-    command: |
-      echo "$KAFKA_JAAS_CONFIG" > /etc/kafka/kafka_server_jaas.conf &&
-      /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties
 
 volumes:
   kafka_data:
